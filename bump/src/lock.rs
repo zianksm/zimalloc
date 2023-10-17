@@ -8,10 +8,15 @@ impl<A> AsRef<spin::Mutex<A>> for Locked<A> {
     }
 }
 
+
 impl<A> Locked<A> {
     pub const fn new(inner: A) -> Self {
         Self {
             inner: spin::Mutex::new(inner),
         }
+    }
+
+    pub fn lock(&self) -> spin::MutexGuard<'_, A> {
+        self.inner.lock()
     }
 }

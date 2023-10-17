@@ -1,5 +1,7 @@
 use core::alloc::GlobalAlloc;
 
+use crate::lock::Locked;
+
 pub struct Allocator {
     heap_start: usize,
     heap_end: usize,
@@ -28,9 +30,15 @@ impl Allocator {
     }
 }
 
-unsafe impl GlobalAlloc for Allocator {
+unsafe impl GlobalAlloc for Locked<Allocator> {
     unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
-        todo!()
+        let mut allocator = self.lock();
+
+        let ptr = allocator.next;
+        allocator.next += layout.size();
+        allocator.allocations += 1;
+        
+        ptr as *mut u8
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: core::alloc::Layout) {
